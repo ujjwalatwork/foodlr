@@ -1,9 +1,14 @@
 
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
+  String? _userName;
+  String? _password;
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +47,13 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 100,),
                   TextFormField(
                     autofocus: true,
-                    //initialValue: "abcdev@gmail.com",
                     keyboardType: TextInputType.emailAddress,
+                    onSaved: (newValue) => _userName = newValue,
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: 15),
                       alignLabelWithHint: true,
                       labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                      hintText: 'Email',
+                      hintText: 'Username',
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       suffixIcon: Icon(Icons.close),
                       prefixIcon: Padding(
@@ -67,6 +72,7 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 10,),
                   TextFormField(
                     obscureText: true,
+                    onSaved: (newValue) => _password = newValue,
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(vertical: 15),
                       labelStyle: TextStyle(fontWeight: FontWeight.bold),
@@ -92,10 +98,26 @@ class LoginScreen extends StatelessWidget {
                       backgroundColor: Colors.amberAccent,
                       minimumSize: Size(double.infinity, 50),
                     ),
-                    onPressed: (){
+                    onPressed: () async {
                       final form = _formKey.currentState;
                       if(form!.validate()) {
+                        form.save();
                         print("form is valid");
+                        var client = http.Client();
+                        try {
+                          var response = await client.post(
+                              Uri.https('dummyjson.com', 'auth/login'),
+                              body: {
+                                'username': _userName,
+                                'password': _password,
+                                'expiresInMins': "30",
+                              });
+                          var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+                          //var uri = Uri.parse(decodedResponse['uri'] as String);
+                          print("decodedResponse: ${decodedResponse}");
+                      } finally {
+                      client.close();
+                      }
                       } else {
                         print("form is not valid");
                       }
