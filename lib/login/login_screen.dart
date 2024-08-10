@@ -1,9 +1,8 @@
-
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:myfoodorderapp/response_model/user_model.dart';
 
 class LoginScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
@@ -112,9 +111,17 @@ class LoginScreen extends StatelessWidget {
                                 'password': _password,
                                 'expiresInMins': "30",
                               });
-                          var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+                          if(response.statusCode == 200) {
+                            //Serializing JSON inline
+                             var decodedResponse = jsonDecode(response.body) as Map<String, dynamic>;
+                            // var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+                             print("JSON inline :: user name: ${decodedResponse["username"]}");
+
+                            //Serializing JSON inside model classes
+                            UserModel model = UserModel.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+                            print("UserModel :: user name: ${model.username}");
+                          }
                           //var uri = Uri.parse(decodedResponse['uri'] as String);
-                          print("decodedResponse: ${decodedResponse}");
                       } finally {
                       client.close();
                       }
